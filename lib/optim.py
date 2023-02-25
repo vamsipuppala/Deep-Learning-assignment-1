@@ -70,20 +70,20 @@ class Adam(Optimizer):
         #############################################################################
         
         self.t +=1
-        for n, dv in layer.grads.items():
-            if n not in self.mt.keys():
-                self.mt[n]=0.0
-                self.vt[n]=0.0
+        # for n, dv in layer.grads.items():
+        #     if n not in self.mt.keys():
+        #         self.mt[n]=0.0
+        #         self.vt[n]=0.0
         
         for n, dv in layer.grads.items():
             
-            if len(self.mt) == 0:
+            if n not in self.mt.keys():
                 
                 self.mt[n] = (1-self.beta1)*dv
             else:
                
                 self.mt[n] = self.beta1*self.mt[n] + (1-self.beta1)*dv
-            if len(self.mt) == 0:
+            if n not in self.vt.keys():
                 self.vt[n] = (1-self.beta2)*np.square(dv)
             else:
                 self.vt[n] = self.beta2*self.vt[n] + (1-self.beta2)*np.power(dv,2)
