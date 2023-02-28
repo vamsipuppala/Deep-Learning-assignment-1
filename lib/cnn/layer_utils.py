@@ -162,7 +162,6 @@ class ConvLayer2D(object):
         #############################################################################
         bt = img.shape[0]
         input_img = self.do_pad(img, self.padding)
-#         img_pad = np.pad(img,((0,0),(self.padding,self.padding),(self.padding,self.padding),(0,0)))
         val = np.newaxis
         output = np.zeros((bt,output_height, output_width,  self.number_filters ))
         for i in range(output_height):
@@ -171,9 +170,7 @@ class ConvLayer2D(object):
             for j in range(output_width):
                 i2 = self.stride * j
                 j2 = i2 + self.kernel_size
-                mult_mesh = input_img[:,i1:j1, i2:j2,:, val]
-                filter_weights = self.params[self.w_name][val:,:,:]
-                ans = np.sum(mult_mesh * filter_weights, axis=(1,2,3))
+                ans = np.sum(input_img[:,i1:j1, i2:j2,:, val] * self.params[self.w_name][val:,:,:], axis=(1,2,3))
                 output[:,i,j,:] = ans
             
         output += self.params[self.b_name]  
@@ -252,6 +249,7 @@ class ConvLayer2D(object):
         r1_r2_r3 = (0,1,2)
         self.grads[self.b_name] = np.sum(dprev,axis=r1_r2_r3) 
         val = np.newaxis
+        padi = self.padding
         #############################################################################
         # TODO: Implement the backward pass of a single convolutional layer.        #
         # Store the computed gradients wrt weights and biases in self.grads with    #
@@ -271,9 +269,9 @@ class ConvLayer2D(object):
                 i2 = self.stride * j
                 j2 = i2 + self.kernel_size
                 self.grads[self.w_name] += np.sum(img_p[:, i1:j1, i2:j2, :, val] *dprev[:, i:i+1, j:j+1, val, :],axis=0)
-                dimg_p[:,i1:j1,i2:j2,:] += np.sum(self.params[self.w_name][np.newaxis,:,:,:,:] * dprev[:,i:i+1,j:j+1,np.newaxis,:], axis= 4)
+                dimg_p[:,i1:j1,i2:j2,:] += np.sum(self.params[self.w_name][val,:,:,:,:] * dprev[:,i:i+1,j:j+1,val,:], axis= 4)
 
-        dimg = dimg_p[:,self.padding:img.shape[1] + self.padding, self.padding:img.shape[1] + self.padding,:]
+        dimg = dimg_p[:,padi:img.shape[1] + padi, padi:img.shape[1] + padi,:]
             
         #############################################################################
         #                             END OF YOUR CODE                              #
@@ -334,6 +332,8 @@ class MaxPoolingLayer(object):
         self.meta = img
 
         return output
+    def fun(self, box, temp):
+        return np.multiply((box == np.max(box)), temp)
     
 
     def backward(self, dprev):
@@ -358,7 +358,8 @@ class MaxPoolingLayer(object):
                     j2 = i2 + w_pool
                     for k in range(dprev.shape[3]):
                         box = img_init_values[i1:j1,i2:j2,k]
-                        dimg[v, i1:j1,i2:j2,k] += np.multiply((box == np.max(box)),dprev[v, i, j,k])
+                        dimg[v, i1:j1,i2:j2,k] += self.fun(box, dprev[v, i, j,k])
+#                         dimg[v, i1:j1,i2:j2,k] += np.multiply((box == np.max(box)),dprev[v, i, j,k])
        
         
         #############################################################################
