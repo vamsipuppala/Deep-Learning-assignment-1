@@ -27,9 +27,9 @@ class SmallConvolutionalNetwork(Module):
             gelu(name="re1"),
             ConvLayer2D(input_channels=16, kernel_size=3, number_filters=32, stride=2, name="conv_test2"),
             gelu(name="re12"),
-            MaxPoolingLayer(2,2,'pooling'),
+            MaxPoolingLayer(4,4,'pooling'),
             flatten("flat"),
-            fc(1568,100, 5e-2, "fc1"),
+            fc(288,100, 5e-2, "fc1"),
             gelu(name="re13"),
             fc(100,20, 5e-2, "fc2")
             ########## TODO: ##########
